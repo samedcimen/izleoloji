@@ -1,0 +1,321 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+// Geliştirmede yerel SQLite dosyası, üretimde Turso (libSQL) — bağlantı prisma.config.ts ve lib/db.ts'te.
+datasource db {
+  provider = "sqlite"
+}
+
+// ─── Enum'lar ─────────────────────────────────────────────────────────────────
+
+enum IcerikTip {
+  film
+  dizi
+}
+
+enum KayitDurum {
+  izledi
+  izleyecek
+}
+
+enum BildirimTip {
+  takip
+  yorum
+  begeni
+  listeBegeni
+}
+
+// ─── Kullanıcı ────────────────────────────────────────────────────────────────
+
+model User {
+  id                String    @id @default(cuid())
+  name              String?
+  username          String?   @unique
+  usernameChangedAt DateTime?
+  // Her zaman küçük harfe çevrilmiş halde saklanır
+  email             String    @unique
+  emailVerified     DateTime?
+  image             String?
+  originalImage     String?
+  bio               String?
+  twitter           String?
+  instagram         String?
+  tiktok            String?
+  coverTema         String?
+  password          String?
+  loginAttempts     Int       @default(0)
+  loginLockedUntil  DateTime?
+  xp                Int       @default(0)
+  // Ad + kullanıcı adının Türkçe küçük harfli hali. SQLite LIKE yalnızca ASCII'de
+  // büyük/küçük harf duyarsız olduğu için arama bu kolon üzerinden yapılır.
+  aramaMetni        String    @default("")
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  accounts              Account[]
+  sessions              Session[]
+  kayitlar              Kayit[]
+  takipEdilenler        Takip[]       @relation("takipci")
+  takipciler            Takip[]       @relation("takipedilen")
+  aldigiBildirimler     Bildirim[]    @relation("BildirimAlici")
+  gonderdigiBildirimler Bildirim[]    @relation("BildirimGonder")
+  yorumlar              Yorum[]
+  yorumBegenileri       YorumBegeni[]
+  oyuncuTakipleri       OyuncuTakip[]
+  ayar                  UserAyar?
+  listeler              Liste[]
+  listeBegenileri       ListeBegeni[]
+
+  @@index([aramaMetni])
+}
+
+model UserAyar {
+  userId String @id
+
+  // Gizlilik
+  profilGizli Boolean @default(false)
+  listeGizli  Boolean @default(false)
+
+  // Bildirimler
+  bildirimTakip Boolean @default(true)
+  bildirimYorum Boolean @default(true)
+  bildirimEmail Boolean @default(false)
+
+  // İzleme tercihleri
+  varsayilanDurum KayitDurum @default(izledi)
+  spoilerGizle    Boolean    @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── İzleme kaydı ─────────────────────────────────────────────────────────────
+
+// "Sonra izle" ayrı bir liste değil, durum = izleyecek olan kayıtlardır.
+model Kayit {
+  id        String      @id @default(cuid())
+  userId    String
+  tmdbId    Int
+  tip       IcerikTip
+  durum     KayitDurum?
+  puan      Int? // 1-5
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tmdbId, tip])
+  @@index([userId, durum, updatedAt(sort: Desc)])
+  @@index([tmdbId, tip])
+}
+
+// ─── Listeler ─────────────────────────────────────────────────────────────────
+
+model Liste {
+  id        String   @id @default(cuid())
+  userId    String
+  ad        String
+  aciklama  String?
+  gizli     Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ogeler    ListeOge[]
+  begeniler ListeBegeni[]
+  bildirimler Bildirim[]
+
+  @@unique([userId, ad])
+}
+
+model ListeOge {
+  id        String    @id @default(cuid())
+  listeId   String
+  tmdbId    Int
+  tip       IcerikTip
+  createdAt DateTime  @default(now())
+
+  liste Liste @relation(fields: [listeId], references: [id], onDelete: Cascade)
+
+  @@unique([listeId, tmdbId, tip])
+}
+
+model ListeBegeni {
+  listeId   String
+  userId    String
+  createdAt DateTime @default(now())
+
+  liste Liste @relation(fields: [listeId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([listeId, userId])
+  @@index([userId])
+}
+
+// ─── Sosyal ───────────────────────────────────────────────────────────────────
+
+model Takip {
+  takipciId     String
+  takipEdilenId String
+  createdAt     DateTime @default(now())
+
+  takipci     User @relation("takipci", fields: [takipciId], references: [id], onDelete: Cascade)
+  takipEdilen User @relation("takipedilen", fields: [takipEdilenId], references: [id], onDelete: Cascade)
+
+  @@id([takipciId, takipEdilenId])
+  @@index([takipEdilenId])
+}
+
+model OyuncuTakip {
+  userId    String
+  oyuncuId  Int
+  ad        String
+  fotograf  String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, oyuncuId])
+}
+
+model Yorum {
+  id           String    @id @default(cuid())
+  userId       String
+  tmdbId       Int
+  tip          IcerikTip
+  icerik       String
+  spoiler      Boolean   @default(false)
+  parentId     String?
+  duzenlendiMi Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent    Yorum?        @relation("YorumYanit", fields: [parentId], references: [id], onDelete: Cascade)
+  yanitlar  Yorum[]       @relation("YorumYanit")
+  begeniler YorumBegeni[]
+
+  @@index([tmdbId, tip, createdAt(sort: Desc)])
+  @@index([userId])
+  @@index([parentId])
+}
+
+model YorumBegeni {
+  yorumId String
+  userId  String
+
+  yorum Yorum @relation(fields: [yorumId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([yorumId, userId])
+  @@index([userId])
+}
+
+model Bildirim {
+  id        String      @id @default(cuid())
+  userId    String
+  gonderId  String?
+  tip       BildirimTip
+  okundu    Boolean     @default(false)
+  tmdbId    Int?
+  icerikTip IcerikTip?
+  listeId   String?
+  createdAt DateTime    @default(now())
+
+  user   User   @relation("BildirimAlici", fields: [userId], references: [id], onDelete: Cascade)
+  gonder User?  @relation("BildirimGonder", fields: [gonderId], references: [id], onDelete: SetNull)
+  liste  Liste? @relation(fields: [listeId], references: [id], onDelete: Cascade)
+
+  @@index([userId, okundu])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+// ─── TMDB önbelleği ───────────────────────────────────────────────────────────
+
+// Profil, liste ve akış sayfalarında her öğe için TMDB'ye gitmemek için
+// içerik özetleri burada tutulur; eskiyenler arka planda yenilenir.
+model IcerikOnbellek {
+  tmdbId       Int
+  tip          IcerikTip
+  baslik       String
+  orijinalBaslik String?
+  posterPath   String?
+  backdropPath String?
+  yil          Int?
+  turIds       String   @default("[]") // JSON dizi: [28, 12, ...]
+  guncellendi  DateTime @updatedAt
+
+  @@id([tmdbId, tip])
+}
+
+// ─── Güvenlik ─────────────────────────────────────────────────────────────────
+
+// Sunucusuz ortamda bellek paylaşılmadığı için rate limit sayaçları veritabanında tutulur.
+model RateLimit {
+  anahtar String   @id // örn. "kayit:ip:1.2.3.4"
+  sayac   Int      @default(0)
+  bitis   DateTime
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  // Token'ın kendisi değil SHA-256 özeti saklanır
+  tokenHash String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
+model IletisimMesaj {
+  id        String   @id @default(cuid())
+  ad        String
+  email     String
+  konu      String
+  mesaj     String
+  okundu    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt(sort: Desc)])
+}
+
+// ─── Auth.js (Prisma adapter) ─────────────────────────────────────────────────
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
