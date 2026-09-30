@@ -1,14 +1,6 @@
 import "server-only";
 import { tmdbFetch } from "./istemci";
-
-export type PosterOge = {
-    id: number;
-    tip: "film" | "dizi";
-    baslik: string;
-    posterPath: string;
-    yil: number | null;
-    puan: number;
-};
+import type { PosterOge } from "./gorsel";
 
 type HamSonuc = {
     id: number;
@@ -23,6 +15,14 @@ type HamSonuc = {
 type Sayfa = { results: HamSonuc[] };
 
 const ALTI_SAAT = 60 * 60 * 6;
+const SAYFA_SAYISI = 3;
+
+const KAYNAKLAR: { yol: string; tip: PosterOge["tip"]; params?: Record<string, string> }[] = [
+    { yol: "/trending/movie/week", tip: "film" },
+    { yol: "/trending/tv/week", tip: "dizi" },
+    { yol: "/discover/movie", tip: "film", params: { with_origin_country: "TR", sort_by: "popularity.desc", "vote_count.gte": "20" } },
+    { yol: "/discover/tv", tip: "dizi", params: { with_origin_country: "TR", sort_by: "popularity.desc", "vote_count.gte": "10" } },
+];
 
 function donustur(tip: PosterOge["tip"]) {
     return (h: HamSonuc): PosterOge | null => {
@@ -39,37 +39,28 @@ function donustur(tip: PosterOge["tip"]) {
     };
 }
 
-// Giriş ekranındaki poster duvarı için: haftanın trendleri + Türkiye'de popüler yapımlar.
-// Kaynaklardan biri hata verirse diğerleriyle devam edilir.
-export async function posterDuvariIcerikleri(): Promise<PosterOge[]> {
-    const kaynaklar: [Promise<Sayfa>, PosterOge["tip"]][] = [
-        [tmdbFetch<Sayfa>("/trending/movie/week", {}, ALTI_SAAT), "film"],
-        [tmdbFetch<Sayfa>("/trending/tv/week", {}, ALTI_SAAT), "dizi"],
-        [tmdbFetch<Sayfa>("/discover/movie", { with_origin_country: "TR", sort_by: "popularity.desc", "vote_count.gte": "20" }, ALTI_SAAT), "film"],
-        [tmdbFetch<Sayfa>("/discover/tv", { with_origin_country: "TR", sort_by: "popularity.desc", "vote_count.gte": "10" }, ALTI_SAAT), "dizi"],
-    ];
+async function kaynakGetir({ yol, tip, params }: (typeof KAYNAKLAR)[number]) {
+    const sayfalar = await Promise.allSettled(
+        Array.from({ length: SAYFA_SAYISI }, (_, i) =>
+            tmdbFetch<Sayfa>(yol, { ...params, page: String(i + 1) }, ALTI_SAAT),
+        ),
+    );
+    return sayfalar.flatMap((s) =>
+        s.status === "fulfilled" ? s.value.results.map(donustur(tip)).filter((o): o is PosterOge => o !== null) : [],
+    );
+}
 
-    const sonuclar = await Promise.allSettled(kaynaklar.map(([istek]) => istek));
+// Giriş ekranındaki poster duvarı için havuz: haftanın trendleri + Türkiye'de popüler
+// yapımlar, her kaynaktan 3 sayfa (~200 içerik). Tarayıcı her ziyarette bu havuzdan
+// rastgele seçer. Hata veren sayfa/kaynak atlanır.
+export async function posterHavuzu(): Promise<PosterOge[]> {
+    const listeler = await Promise.all(KAYNAKLAR.map(kaynakGetir));
 
     const gorulen = new Set<string>();
-    const listeler = sonuclar.map((s, i) =>
-        s.status === "fulfilled"
-            ? s.value.results.map(donustur(kaynaklar[i][1])).filter((o): o is PosterOge => o !== null)
-            : [],
-    );
-
-    // Kaynakları sırayla harmanla ki duvarda film/dizi ve yerli/yabancı karışık dursun
-    const harman: PosterOge[] = [];
-    const enUzun = Math.max(0, ...listeler.map((l) => l.length));
-    for (let i = 0; i < enUzun; i++) {
-        for (const liste of listeler) {
-            const oge = liste[i];
-            if (!oge) continue;
-            const anahtar = `${oge.tip}-${oge.id}`;
-            if (gorulen.has(anahtar)) continue;
-            gorulen.add(anahtar);
-            harman.push(oge);
-        }
-    }
-    return harman;
+    return listeler.flat().filter((oge) => {
+        const anahtar = `${oge.tip}-${oge.id}`;
+        if (gorulen.has(anahtar)) return false;
+        gorulen.add(anahtar);
+        return true;
+    });
 }

@@ -27,6 +27,16 @@
     will-change: transform;
 }
 
+/* Duvar tarayıcıda oluşturulduğu için sayfa açılınca solarak belirir */
+.belir {
+    animation: belir 1.2s ease-out both;
+}
+
+@keyframes belir {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
 .sutun {
     width: clamp(5.5rem, 11vw, 11rem);
     flex-shrink: 0;

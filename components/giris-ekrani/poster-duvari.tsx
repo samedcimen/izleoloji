@@ -1,12 +1,15 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { posterUrl } from "@/lib/tmdb/istemci";
-import type { PosterOge } from "@/lib/tmdb/trend";
+import { posterUrl, type PosterOge } from "@/lib/tmdb/gorsel";
 import { Paralaks } from "./paralaks";
 import s from "./poster-duvari.module.css";
 
 const SUTUN_SAYISI = 10;
+const GOSTERILECEK = 80;
 
 // Her sütuna farklı hız ve başlangıç verilir ki duvar tekdüze akmasın
 const sutunAyari = (i: number) => ({
@@ -14,16 +17,35 @@ const sutunAyari = (i: number) => ({
     "--gecikme": `-${(i * 13) % 40}s`,
 }) as React.CSSProperties;
 
-export function PosterDuvari({ icerikler }: { icerikler: PosterOge[] }) {
-    const sutunlar = Array.from({ length: SUTUN_SAYISI }, (_, i) =>
-        icerikler.filter((_, j) => j % SUTUN_SAYISI === i),
-    );
+// Fisher–Yates: havuzu karıştırıp ilk n tanesini alır
+function rastgeleSec<T>(havuz: T[], n: number) {
+    const dizi = [...havuz];
+    for (let i = dizi.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [dizi[i], dizi[j]] = [dizi[j], dizi[i]];
+    }
+    return dizi.slice(0, n);
+}
+
+// Seçim tarayıcıda yapılır ki her ziyarette farklı posterler/sıra gelsin. Sunucuda
+// rastgele üretilseydi tarayıcıdaki sonuçla uyuşmaz (hydration hatası); bu yüzden
+// duvar sayfa açıldıktan hemen sonra solarak belirir. Kart bundan etkilenmez.
+export function PosterDuvari({ havuz }: { havuz: PosterOge[] }) {
+    const [sutunlar, setSutunlar] = useState<PosterOge[][] | null>(null);
+
+    useEffect(() => {
+        const secilen = rastgeleSec(havuz, GOSTERILECEK);
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- rastgelelik yalnızca tarayıcıda, bir kez
+        setSutunlar(
+            Array.from({ length: SUTUN_SAYISI }, (_, i) => secilen.filter((_, j) => j % SUTUN_SAYISI === i)),
+        );
+    }, [havuz]);
 
     return (
         <div className={s.sahne} aria-hidden>
             <div className={s.isima} />
-            {icerikler.length > 0 && (
-                <Paralaks className={s.duvar}>
+            {sutunlar && (
+                <Paralaks className={cn(s.duvar, s.belir)}>
                     {sutunlar.map((sutun, i) => (
                         <div key={i} className={cn(s.sutun, i % 2 === 1 && s.ters)} style={sutunAyari(i)}>
                             <div className={s.serit}>
