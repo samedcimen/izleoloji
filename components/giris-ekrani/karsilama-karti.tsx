@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, LogOut } from "lucide-react";
+import { cikisYap } from "@/app/actions/oturum";
 import { proje } from "@/lib/ayarlar/proje";
 import s from "./poster-duvari.module.css";
 
@@ -9,7 +10,7 @@ const SLOGAN = [
     { kelime: "paylaş", aciklama: "Puanlarını, yorumlarını ve listelerini arkadaşlarınla paylaş." },
 ];
 
-export function KarsilamaKarti() {
+export function KarsilamaKarti({ kullanici }: { kullanici?: Kullanici }) {
     return (
         <div className="relative z-10 w-full max-w-md rounded-3xl border border-white/10 bg-[#0c0a14]/65 p-8 text-center text-white shadow-[0_30px_80px_-20px_rgb(0_0_0/0.9),0_0_0_1px_rgb(167_139_250/0.08)_inset] backdrop-blur-xl sm:p-10">
             <h1 className="text-4xl font-black tracking-tight sm:text-5xl">
@@ -36,6 +37,39 @@ export function KarsilamaKarti() {
                 </div>
             </div>
 
+            {kullanici ? <OturumAcik kullanici={kullanici} /> : <Misafir />}
+        </div>
+    );
+}
+
+type Kullanici = { ad: string | null; kullaniciAdi: string | null; resim: string | null };
+
+// Keşfet/profil sayfaları gelene kadar oturum açıkken yalnızca selam ve çıkış
+function OturumAcik({ kullanici }: { kullanici: Kullanici }) {
+    return (
+        <div className="mt-8 flex flex-col items-center gap-4">
+            <div className="flex items-center gap-3 rounded-full border border-white/10 bg-white/5 py-1.5 pl-1.5 pr-5 text-left">
+                {kullanici.resim && (
+                    // eslint-disable-next-line @next/next/no-img-element -- küçük yerel/OAuth avatarı
+                    <img src={kullanici.resim} alt="" className="size-9 rounded-full bg-white/10" />
+                )}
+                <div className="leading-tight">
+                    <p className="text-sm font-semibold">Hoş geldin, {kullanici.ad?.split(" ")[0] ?? "izleyici"}</p>
+                    {kullanici.kullaniciAdi && <p className="text-xs text-white/50">@{kullanici.kullaniciAdi}</p>}
+                </div>
+            </div>
+            <form action={cikisYap}>
+                <button type="submit" className="flex items-center gap-1.5 text-xs text-white/45 transition hover:text-white/80">
+                    <LogOut className="size-3.5" />
+                    Çıkış yap
+                </button>
+            </form>
+        </div>
+    );
+}
+
+function Misafir() {
+    return (
             <div className="mt-8 flex flex-col gap-3">
                 <Link
                     href="/kayit"
@@ -57,6 +91,5 @@ export function KarsilamaKarti() {
                     <ArrowRight className="size-3.5 transition group-hover:translate-x-0.5" />
                 </Link>
             </div>
-        </div>
     );
 }

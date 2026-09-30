@@ -1,0 +1,137 @@
+import NextAuth from "next-auth";
+import type { Provider } from "next-auth/providers";
+import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
+import GitHub from "next-auth/providers/github";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import bcrypt from "bcryptjs";
+import { db } from "@/lib/db";
+import { env } from "@/lib/env";
+import { girisSema } from "@/lib/dogrulama";
+import { UYELIK } from "@/lib/ayarlar/uyelik";
+import { aramaMetniOlustur } from "@/lib/metin";
+import { kullaniciAdiUret, rastgeleAvatar } from "@/lib/kullanici";
+
+// Kullanıcı yokken de bcrypt karşılaştırması yapılır ki yanıt süresinden
+// "bu e-posta kayıtlı mı" anlaşılamasın.
+const SAHTE_HASH = "$2b$12$y5NdbuYrAHx54pLOv3tZTOUOxuSVqMc2cKXg3IlLrmpXiTBk3D22u";
+
+// Oturumdaki kullanıcı en fazla bu aralıkla veritabanından tazelenir (silinmiş/değişmiş hesap)
+const TAZELEME_MS = 5 * 60 * 1000;
+
+const saglayicilar: Provider[] = [
+    Credentials({
+        credentials: { email: {}, sifre: {} },
+        async authorize(girdi) {
+            const ayik = girisSema.safeParse(girdi);
+            if (!ayik.success) return null;
+            const { email, sifre } = ayik.data;
+
+            const kullanici = await db.user.findUnique({ where: { email } });
+
+            if (!kullanici?.password) {
+                await bcrypt.compare(sifre, SAHTE_HASH);
+                return null;
+            }
+            if (kullanici.loginLockedUntil && kullanici.loginLockedUntil > new Date()) {
+                return null;
+            }
+
+            if (!(await bcrypt.compare(sifre, kullanici.password))) {
+                const deneme = kullanici.loginAttempts + 1;
+                const kilitle = deneme >= UYELIK.MAX_GIRIS_DENEMESI;
+                await db.user.update({
+                    where: { id: kullanici.id },
+                    data: kilitle
+                        ? { loginAttempts: 0, loginLockedUntil: new Date(Date.now() + UYELIK.HESAP_KILIT_DAKIKA * 60_000) }
+                        : { loginAttempts: deneme },
+                });
+                return null;
+            }
+
+            if (kullanici.loginAttempts > 0 || kullanici.loginLockedUntil) {
+                await db.user.update({ where: { id: kullanici.id }, data: { loginAttempts: 0, loginLockedUntil: null } });
+            }
+            return { id: kullanici.id, name: kullanici.name, email: kullanici.email, image: kullanici.image };
+        },
+    }),
+];
+
+// OAuth sağlayıcıları yalnızca anahtarları tanımlıysa görünür. Google ve GitHub e-postaları
+// doğrulanmış olduğundan aynı e-postalı mevcut hesaba bağlanmasına izin verilir.
+if (env.AUTH_GOOGLE_ID && env.AUTH_GOOGLE_SECRET) {
+    saglayicilar.push(Google({ allowDangerousEmailAccountLinking: true }));
+}
+if (env.AUTH_GITHUB_ID && env.AUTH_GITHUB_SECRET) {
+    saglayicilar.push(GitHub({ allowDangerousEmailAccountLinking: true }));
+}
+
+export const oauthSaglayicilari = saglayicilar
+    .map((s) => (typeof s === "function" ? s() : s))
+    .filter((s) => s.type === "oidc" || s.type === "oauth")
+    .map((s) => ({ id: s.id, ad: s.name }));
+
+export const { handlers, auth, signIn, signOut } = NextAuth({
+    // Prisma 7'nin üretilen istemcisi adapter'ın beklediği tiple birebir aynı değil; çalışma zamanında uyumlu.
+    adapter: PrismaAdapter(db as never),
+    // Credentials sağlayıcısı veritabanı oturumu desteklemediği için JWT
+    session: { strategy: "jwt", maxAge: UYELIK.OTURUM_GUN * 24 * 60 * 60 },
+    trustHost: true,
+    providers: saglayicilar,
+    pages: { signIn: "/giris", error: "/giris" },
+    // Yanlış şifre olağan bir durum; her seferinde hata yığını basılmasın
+    logger: {
+        error(hata) {
+            if (hata.name === "CredentialsSignin") return;
+            console.error(hata);
+        },
+    },
+    events: {
+        // OAuth ile ilk kez gelen kullanıcıya kullanıcı adı, avatar ve arama metni ver
+        async createUser({ user }) {
+            if (!user.id) return;
+            const email = user.email?.toLowerCase();
+            const username = await kullaniciAdiUret(user.name ?? email?.split("@")[0] ?? "izleyici");
+            await db.user.update({
+                where: { id: user.id },
+                data: {
+                    ...(email && { email }),
+                    username,
+                    originalImage: user.image ?? null,
+                    image: rastgeleAvatar(),
+                    aramaMetni: aramaMetniOlustur(user.name, username),
+                },
+            });
+        },
+    },
+    callbacks: {
+        async jwt({ token, user, trigger }) {
+            if (user?.id) {
+                token.id = user.id;
+                token.tazelendi = 0; // hemen aşağıda veritabanından doldurulur
+            }
+            if (!token.id) return token;
+
+            const eski = typeof token.tazelendi === "number" && Date.now() - token.tazelendi < TAZELEME_MS;
+            if (eski && trigger !== "update") return token;
+
+            const k = await db.user.findUnique({
+                where: { id: token.id as string },
+                select: { name: true, username: true, image: true },
+            });
+            if (!k) return null; // hesap silinmiş → oturum düşer
+
+            token.name = k.name;
+            token.picture = k.image;
+            token.username = k.username;
+            token.tazelendi = Date.now();
+            return token;
+        },
+        session({ session, token }) {
+            session.user.id = token.id as string;
+            session.user.username = (token.username as string | null) ?? null;
+            session.user.image = (token.picture as string | null) ?? null;
+            return session;
+        },
+    },
+});

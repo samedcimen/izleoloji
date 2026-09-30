@@ -17,6 +17,20 @@ const sema = z.object({
     VERCEL_PROJECT_PRODUCTION_URL: z.string().optional(),
 
     TMDB_API_KEY: z.string().min(1).optional(),
+
+    // Auth.js — AUTH_SECRET'ı Auth.js kendisi okur; burada yalnızca biçim kontrolü.
+    // OAuth sağlayıcıları ID + SECRET ikisi de varsa etkinleşir (lib/auth-saglayicilar).
+    AUTH_SECRET: z.string().min(32, "en az 32 karakter olmalı (npx auth secret)").optional(),
+    AUTH_GOOGLE_ID: z.string().optional(),
+    AUTH_GOOGLE_SECRET: z.string().optional(),
+    AUTH_GITHUB_ID: z.string().optional(),
+    AUTH_GITHUB_SECRET: z.string().optional(),
+
+    // Mail: Resend varsa o, yoksa Gmail SMTP, o da yoksa geliştirmede terminale yazılır
+    RESEND_API_KEY: z.string().optional(),
+    MAIL_FROM: z.string().optional(),
+    SMTP_USER: z.string().optional(),
+    SMTP_PASS: z.string().optional(),
 });
 
 // Panelde boş bırakılan değişkenler "" olarak gelir; hiç tanımlanmamış gibi davran.

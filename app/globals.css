@@ -131,3 +131,8 @@
     @apply font-sans;
   }
 }
+/* Edge/IE'nin kendi şifre göster ikonu — şifre alanında kendi butonumuz var */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}

@@ -253,9 +253,9 @@ model IcerikOnbellek {
 
 // Sunucusuz ortamda bellek paylaşılmadığı için rate limit sayaçları veritabanında tutulur.
 model RateLimit {
-  anahtar String   @id // örn. "kayit:ip:1.2.3.4"
-  sayac   Int      @default(0)
-  bitis   DateTime
+  anahtar String @id // örn. "giris:ip:1.2.3.4"
+  sayac   Int    @default(0)
+  bitis   Int // pencerenin bittiği an (unix saniye) — tek SQL ifadesinde karşılaştırmak için sayı
 }
 
 model PasswordResetToken {
