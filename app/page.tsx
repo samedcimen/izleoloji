@@ -1,13 +1,26 @@
+import type { Metadata } from "next";
 import { proje } from "@/lib/ayarlar/proje";
+import { posterDuvariIcerikleri } from "@/lib/tmdb/trend";
+import { PosterDuvari } from "@/components/giris-ekrani/poster-duvari";
+import { KarsilamaKarti } from "@/components/giris-ekrani/karsilama-karti";
 
-export default function AnaSayfa() {
+// Trendler 6 saatte bir yenilenir; arada sayfa önbellekten sunulur
+export const revalidate = 21600;
+
+export const metadata: Metadata = {
+    title: { absolute: `${proje.baslik} — ${proje.baslik2}` },
+};
+
+export default async function AnaSayfa() {
+    const icerikler = await posterDuvariIcerikleri().catch(() => []);
+
     return (
-        <main className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
-            <h1 className="text-5xl font-black tracking-tight">
-                izle<span className="text-violet-500">oloji</span>
-            </h1>
-            <p className="text-lg text-muted-foreground">{proje.baslik2}</p>
-            <p className="text-sm text-muted-foreground">Yeniden yapım sürüyor — aşama 1: iskelet.</p>
+        <main className="relative isolate flex min-h-dvh flex-1 flex-col items-center justify-end overflow-hidden px-4 pb-10 sm:justify-center sm:pb-0">
+            <PosterDuvari icerikler={icerikler} />
+            <KarsilamaKarti />
+            <p className="absolute bottom-3 left-1/2 z-10 -translate-x-1/2 text-[10px] text-white/30">
+                Film ve dizi verileri TMDB&apos;den sağlanır.
+            </p>
         </main>
     );
 }

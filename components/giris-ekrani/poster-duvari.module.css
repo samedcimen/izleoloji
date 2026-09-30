@@ -1,0 +1,158 @@
+/* Eğik 3D poster duvarı — tüm hareket CSS transform ile, ekran kartında (GPU) çalışır. */
+
+.sahne {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background: #07060d;
+    perspective: 1400px;
+}
+
+/* Paralaks: --px / --py (-1..1) fare konumundan gelir */
+.duvar {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    gap: 1.25rem;
+    transform-style: preserve-3d;
+    transform:
+        translate(-50%, -50%)
+        translate3d(calc(var(--px, 0) * -24px), calc(var(--py, 0) * -18px), 0)
+        rotateX(calc(20deg + var(--py, 0) * 3deg))
+        rotateY(calc(var(--px, 0) * 4deg))
+        rotateZ(-14deg)
+        scale(1.3);
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+}
+
+.sutun {
+    width: clamp(5.5rem, 11vw, 11rem);
+    flex-shrink: 0;
+}
+
+/* Şerit içerikleri iki kez tekrarlanır; -50% kaydırınca başa sarar ve dikiş görünmez */
+.serit {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    animation: kay var(--sure, 70s) linear infinite;
+    animation-delay: var(--gecikme, 0s);
+}
+
+.ters .serit {
+    animation-direction: reverse;
+}
+
+.sutun:hover .serit {
+    animation-play-state: paused;
+}
+
+@keyframes kay {
+    from { transform: translate3d(0, 0, 0); }
+    to   { transform: translate3d(0, -50%, 0); }
+}
+
+/* ── Poster kartı ─────────────────────────────────────────────────────────── */
+
+.poster {
+    position: relative;
+    aspect-ratio: 2 / 3;
+    border-radius: 0.9rem;
+    overflow: hidden;
+    background: #16131f;
+    box-shadow: 0 18px 40px -12px rgb(0 0 0 / 0.8);
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s;
+}
+
+.poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(0.85) brightness(0.8);
+    transition: filter 0.35s;
+}
+
+.poster:hover {
+    transform: translateZ(40px) scale(1.07);
+    box-shadow:
+        0 0 0 2px rgb(167 139 250 / 0.9),
+        0 24px 60px -10px rgb(124 58 237 / 0.55);
+    z-index: 2;
+}
+
+.poster:hover img {
+    filter: none;
+}
+
+.bilgi {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 2.5rem 0.7rem 0.7rem;
+    background: linear-gradient(to top, rgb(0 0 0 / 0.92), rgb(0 0 0 / 0.5) 60%, transparent);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.3s, transform 0.3s;
+}
+
+.poster:hover .bilgi {
+    opacity: 1;
+    transform: none;
+}
+
+/* ── Katmanlar: kenar kararması + mor ışıma ──────────────────────────────── */
+
+.karartma {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse 55% 60% at 50% 50%, rgb(7 6 13 / 0.35) 0%, rgb(7 6 13 / 0.75) 55%, #07060d 100%),
+        linear-gradient(to bottom, #07060d 0%, transparent 18%, transparent 82%, #07060d 100%);
+}
+
+.isima {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 60rem;
+    height: 60rem;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    background: radial-gradient(circle, rgb(124 58 237 / 0.28) 0%, transparent 60%);
+    filter: blur(20px);
+}
+
+/* ── Dönen slogan ────────────────────────────────────────────────────────── */
+
+.donen {
+    display: grid;
+}
+
+.donen > * {
+    grid-area: 1 / 1;
+    opacity: 0;
+    animation: kelime 9s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.donen > :nth-child(2) { animation-delay: 3s; }
+.donen > :nth-child(3) { animation-delay: 6s; }
+
+@keyframes kelime {
+    0%        { opacity: 0; transform: translateY(0.35em); filter: blur(6px); }
+    5%, 30%   { opacity: 1; transform: none; filter: blur(0); }
+    36%, 100% { opacity: 0; transform: translateY(-0.35em); filter: blur(6px); }
+}
+
+.sabitSlogan {
+    display: none;
+}
+
+/* Sistemde "hareketi azalt" açıksa: duvar durur, slogan sabit görünür */
+@media (prefers-reduced-motion: reduce) {
+    .serit { animation: none; }
+    .duvar { transition: none; }
+    .donen { display: none; }
+    .sabitSlogan { display: block; }
+}
