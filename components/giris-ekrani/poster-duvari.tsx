@@ -49,6 +49,9 @@ function PosterKart({ oge }: { oge: PosterOge }) {
                 width={342}
                 height={513}
                 unoptimized
+                // Sütunlar rastgele konumdan başladığı için hangi posterin ilk görüneceği
+                // belli değil; hepsi hemen yüklenir (kopyalar aynı URL'i önbellekten alır).
+                loading="eager"
                 draggable={false}
             />
             <div className={s.bilgi}>

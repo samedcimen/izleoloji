@@ -145,14 +145,18 @@
     36%, 100% { opacity: 0; transform: translateY(-0.35em); filter: blur(6px); }
 }
 
-.sabitSlogan {
-    display: none;
+/* Sistemde "hareketi azalt" açıksa (ör. Windows'ta animasyonlar kapalı): duvar tamamen
+   durmaz, 4 kat yavaş süzülür; paralaks kapalı (paralaks.tsx), slogan kaymadan yalnızca solarak değişir. */
+@media (prefers-reduced-motion: reduce) {
+    .serit { animation-duration: calc(var(--sure, 70s) * 4); }
+    .duvar { transition: none; }
+    .poster, .poster img, .bilgi { transition-duration: 0.01s; }
+    .poster:hover { transform: none; }
+    .donen > * { animation-name: kelimeSol; }
 }
 
-/* Sistemde "hareketi azalt" açıksa: duvar durur, slogan sabit görünür */
-@media (prefers-reduced-motion: reduce) {
-    .serit { animation: none; }
-    .duvar { transition: none; }
-    .donen { display: none; }
-    .sabitSlogan { display: block; }
+@keyframes kelimeSol {
+    0%        { opacity: 0; }
+    5%, 30%   { opacity: 1; }
+    36%, 100% { opacity: 0; }
 }

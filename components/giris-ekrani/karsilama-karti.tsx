@@ -26,9 +26,6 @@ export function KarsilamaKarti() {
                         </span>
                     ))}
                 </div>
-                <span className={s.sabitSlogan}>
-                    keşfet<span className="text-violet-500">.</span>
-                </span>
             </div>
 
             <div className="mt-3 min-h-10 text-sm text-white/55">
@@ -37,7 +34,6 @@ export function KarsilamaKarti() {
                         <p key={o.kelime}>{o.aciklama}</p>
                     ))}
                 </div>
-                <p className={s.sabitSlogan}>{proje.aciklama}</p>
             </div>
 
             <div className="mt-8 flex flex-col gap-3">
