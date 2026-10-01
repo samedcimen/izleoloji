@@ -27,7 +27,7 @@ export default async function YeniSifreSayfasi({ params }: PageProps<"/sifre-sif
     }
 
     return (
-        <OturumKarti baslik="Yeni şifre belirle" aciklama="Şifren değişince tüm cihazlarda yeni şifrenle giriş yaparsın.">
+        <OturumKarti baslik="Yeni şifre belirle" aciklama="Şifren değişince diğer cihazlardaki açık oturumların da kapanır.">
             <YeniSifreFormu token={token} />
         </OturumKarti>
     );

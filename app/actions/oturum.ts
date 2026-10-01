@@ -182,11 +182,23 @@ export async function sifreYenile(_: FormDurumu | undefined, form: FormData): Pr
         return { mesaj: "Bu bağlantının süresi dolmuş ya da daha önce kullanılmış. Yeni bir sıfırlama bağlantısı iste." };
     }
 
-    // Şifre değişir, hesap kilidi açılır, o e-postanın tüm sıfırlama bağlantıları geçersiz olur
+    // Aynı şifre "değişti" sayılmasın; bağlantı kullanılmamış kalır, başka şifre denenebilir
+    const kullanici = await db.user.findUnique({ where: { email: kayit.email }, select: { password: true } });
+    if (kullanici?.password && (await bcrypt.compare(sifre, kullanici.password))) {
+        return { hatalar: { sifre: ["Yeni şifren eskisiyle aynı olamaz."] } };
+    }
+
+    // Şifre değişir, hesap kilidi açılır, önceki oturumlar kapanır (sifreDegisti),
+    // o e-postanın tüm sıfırlama bağlantıları geçersiz olur
     await db.$transaction([
         db.user.update({
             where: { email: kayit.email },
-            data: { password: await bcrypt.hash(sifre, UYELIK.BCRYPT_TUR), loginAttempts: 0, loginLockedUntil: null },
+            data: {
+                password: await bcrypt.hash(sifre, UYELIK.BCRYPT_TUR),
+                loginAttempts: 0,
+                loginLockedUntil: null,
+                sifreDegisti: new Date(),
+            },
         }),
         db.passwordResetToken.deleteMany({ where: { email: kayit.email } }),
     ]);

@@ -141,6 +141,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         async jwt({ token, user, trigger }) {
             if (user?.id) {
                 token.id = user.id;
+                // Şifre bu andan sonra değişirse bu oturum geçersiz sayılır (aşağıdaki kontrol)
+                token.girisZamani = Date.now();
                 // Şifreyle girişte kullanıcı az önce okundu; tekrar sorgulamaya gerek yok.
                 // OAuth'ta ilk girişte kullanıcı adı henüz atanmamış olabilir → aşağıda okunur.
                 if (user.username) {
@@ -159,9 +161,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
             const k = await db.user.findUnique({
                 where: { id: token.id as string },
-                select: { name: true, username: true, image: true },
+                select: { name: true, username: true, image: true, sifreDegisti: true },
             });
             if (!k) return null; // hesap silinmiş → oturum düşer
+            // Şifre bu oturum açıldıktan sonra değişti → diğer cihazlardaki oturumlar da kapanır
+            if (k.sifreDegisti && Number(token.girisZamani ?? 0) < k.sifreDegisti.getTime()) return null;
 
             token.name = k.name;
             token.picture = k.image;

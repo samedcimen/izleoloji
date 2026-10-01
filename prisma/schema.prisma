@@ -47,6 +47,8 @@ model User {
   password          String?
   loginAttempts     Int       @default(0)
   loginLockedUntil  DateTime?
+  // Bu andan önce açılmış oturumlar geçersiz (şifre değişince diğer cihazlardan çıkış)
+  sifreDegisti      DateTime?
   xp                Int       @default(0)
   // Ad + kullanıcı adının Türkçe küçük harfli hali. SQLite LIKE yalnızca ASCII'de
   // büyük/küçük harf duyarsız olduğu için arama bu kolon üzerinden yapılır.
