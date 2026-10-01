@@ -1,4 +1,5 @@
 import NextAuth, { CredentialsSignin } from "next-auth";
+import { after } from "next/server";
 import type { Provider } from "next-auth/providers";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
@@ -20,7 +21,7 @@ export class CokFazlaDeneme extends CredentialsSignin {
 
 // Kullanıcı yokken de bcrypt karşılaştırması yapılır ki yanıt süresinden
 // "bu e-posta kayıtlı mı" anlaşılamasın.
-const SAHTE_HASH = "$2b$12$y5NdbuYrAHx54pLOv3tZTOUOxuSVqMc2cKXg3IlLrmpXiTBk3D22u";
+const SAHTE_HASH = "$2b$10$TbOcPMS2MWUHfD3BuMqgOeX.DGbFKVvB2q6doU01QSfZH8AsLWb5W"; // UYELIK.BCRYPT_TUR ile aynı tur sayısında olmalı
 
 // Oturumdaki kullanıcı en fazla bu aralıkla veritabanından tazelenir (silinmiş/değişmiş hesap)
 const TAZELEME_MS = 5 * 60 * 1000;
@@ -61,8 +62,20 @@ const saglayicilar: Provider[] = [
                 return null;
             }
 
-            if (kullanici.loginAttempts > 0 || kullanici.loginLockedUntil) {
-                await db.user.update({ where: { id: kullanici.id }, data: { loginAttempts: 0, loginLockedUntil: null } });
+            // Deneme sayacını sıfırlama ve eski tur sayısıyla kaydedilmiş şifreyi yenileme
+            // yanıtı bekletmesin: yanıt gönderildikten sonra yapılır
+            const sayacSifirla = kullanici.loginAttempts > 0 || !!kullanici.loginLockedUntil;
+            const yenidenHashle = bcrypt.getRounds(kullanici.password) !== UYELIK.BCRYPT_TUR;
+            if (sayacSifirla || yenidenHashle) {
+                after(async () => {
+                    await db.user.update({
+                        where: { id: kullanici.id },
+                        data: {
+                            ...(sayacSifirla && { loginAttempts: 0, loginLockedUntil: null }),
+                            ...(yenidenHashle && { password: await bcrypt.hash(sifre, UYELIK.BCRYPT_TUR) }),
+                        },
+                    });
+                });
             }
             return { id: kullanici.id, name: kullanici.name, email: kullanici.email, image: kullanici.image, username: kullanici.username };
         },

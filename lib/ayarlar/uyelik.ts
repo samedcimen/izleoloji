@@ -7,7 +7,9 @@ export const UYELIK = {
     SIFRE_MIN: 8,
     SIFRE_MAX: 128,
 
-    BCRYPT_TUR: 12,
+    // 10 tur: OWASP alt sınırı; Vercel'de doğrulama ~80 ms (12 turda ~320 ms). Farklı turla
+    // kaydedilmiş eski şifreler girişte bu değere yeniden hash'lenir.
+    BCRYPT_TUR: 10,
 
     // Aynı hesaba art arda hatalı giriş → geçici kilit
     MAX_GIRIS_DENEMESI: 5,

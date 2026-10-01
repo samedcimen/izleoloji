@@ -1,4 +1,5 @@
 import "server-only";
+import { unstable_cache } from "next/cache";
 import { tmdbFetch } from "./istemci";
 import type { PosterOge } from "./gorsel";
 
@@ -53,7 +54,10 @@ async function kaynakGetir({ yol, tip, params }: (typeof KAYNAKLAR)[number]) {
 // Giriş ekranındaki poster duvarı için havuz: haftanın trendleri + Türkiye'de popüler
 // yapımlar, her kaynaktan 3 sayfa (~200 içerik). Tarayıcı her ziyarette bu havuzdan
 // rastgele seçer. Hata veren sayfa/kaynak atlanır.
-export async function posterHavuzu(): Promise<PosterOge[]> {
+export const posterHavuzu = unstable_cache(posterHavuzuGetir, ["poster-havuzu"], { revalidate: ALTI_SAAT });
+
+// Tek parça önbelleklenir: sayfa her açılışta 12 ayrı fetch önbelleği yerine tek kayda bakar
+async function posterHavuzuGetir(): Promise<PosterOge[]> {
     const listeler = await Promise.all(KAYNAKLAR.map(kaynakGetir));
 
     const gorulen = new Set<string>();
