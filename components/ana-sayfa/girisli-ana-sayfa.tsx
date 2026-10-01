@@ -1,6 +1,7 @@
 import { anaSayfaVerisi, turIcerikleri } from "@/lib/tmdb/ana-sayfa";
 import { KESIF_TURLERI } from "@/lib/tmdb/turler";
 import { UstMenu, type MenuKullanici } from "@/components/site/ust-menu";
+import { YanMenu } from "@/components/site/yan-menu";
 import { Serit } from "@/components/icerik/serit";
 import { PosterKarti } from "@/components/icerik/poster-karti";
 import { Vitrin } from "./vitrin";
@@ -15,7 +16,8 @@ export async function GirisliAnaSayfa({ kullanici }: { kullanici: MenuKullanici 
     const [veri, turIlk] = await Promise.all([anaSayfaVerisi(), turIcerikleri(ilkTur.film, ilkTur.dizi)]);
 
     return (
-        <div className="min-h-dvh bg-background text-foreground">
+        <div className="min-h-dvh bg-background text-foreground lg:pl-[72px]">
+            <YanMenu kullanici={kullanici} />
             <UstMenu kullanici={kullanici} />
             <main>
                 <Vitrin ogeler={veri.vitrin} />
