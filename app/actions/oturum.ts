@@ -4,7 +4,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { redirect } from "next/navigation";
 import { AuthError } from "next-auth";
 import bcrypt from "bcryptjs";
-import { signIn, signOut } from "@/auth";
+import { CokFazlaDeneme, signIn, signOut } from "@/auth";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { UYELIK } from "@/lib/ayarlar/uyelik";
@@ -39,8 +39,6 @@ function formDegerleri(form: FormData, ...alanlar: string[]) {
 
 export async function girisYap(_: FormDurumu | undefined, form: FormData): Promise<FormDurumu> {
     const degerler = formDegerleri(form, "email");
-    if (await limitAsildiMi("girisIp", await istemciIp())) return { mesaj: COK_ISTEK, degerler };
-
     const ayik = girisSema.safeParse({ email: form.get("email"), sifre: form.get("sifre") });
     if (!ayik.success) return { hatalar: alanHatalari(ayik.error), degerler };
 
@@ -49,6 +47,7 @@ export async function girisYap(_: FormDurumu | undefined, form: FormData): Promi
     } catch (hata) {
         // Başarılı girişte signIn yönlendirme hatası fırlatır; onu yeniden fırlatmak gerekir
         if (hata instanceof AuthError) {
+            if ((hata as CokFazlaDeneme).code === new CokFazlaDeneme().code) return { mesaj: COK_ISTEK, degerler };
             return {
                 mesaj: `E-posta ya da şifre hatalı. Art arda ${UYELIK.MAX_GIRIS_DENEMESI} hatalı denemede hesap ${UYELIK.HESAP_KILIT_DAKIKA} dakika kilitlenir.`,
                 degerler,

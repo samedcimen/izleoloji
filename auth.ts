@@ -1,4 +1,4 @@
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
 import type { Provider } from "next-auth/providers";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
@@ -11,6 +11,12 @@ import { girisSema } from "@/lib/dogrulama";
 import { UYELIK } from "@/lib/ayarlar/uyelik";
 import { aramaMetniOlustur } from "@/lib/metin";
 import { kullaniciAdiUret, rastgeleAvatar } from "@/lib/kullanici";
+import { limitAsildiMi } from "@/lib/rate-limit";
+
+// Girişte IP başına deneme sınırı aşıldı; action bunu kodundan tanıyıp ayrı mesaj gösterir
+export class CokFazlaDeneme extends CredentialsSignin {
+    code = "cok_fazla_deneme";
+}
 
 // Kullanıcı yokken de bcrypt karşılaştırması yapılır ki yanıt süresinden
 // "bu e-posta kayıtlı mı" anlaşılamasın.
@@ -22,12 +28,18 @@ const TAZELEME_MS = 5 * 60 * 1000;
 const saglayicilar: Provider[] = [
     Credentials({
         credentials: { email: {}, sifre: {} },
-        async authorize(girdi) {
+        async authorize(girdi, istek) {
             const ayik = girisSema.safeParse(girdi);
             if (!ayik.success) return null;
             const { email, sifre } = ayik.data;
 
-            const kullanici = await db.user.findUnique({ where: { email } });
+            // Sınır kontrolü ve kullanıcı sorgusu aynı anda (art arda iki veritabanı gidiş-dönüşü yerine bir)
+            const ip = istek.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || istek.headers.get("x-real-ip") || "bilinmiyor";
+            const [sinirAsildi, kullanici] = await Promise.all([
+                limitAsildiMi("girisIp", ip),
+                db.user.findUnique({ where: { email } }),
+            ]);
+            if (sinirAsildi) throw new CokFazlaDeneme();
 
             if (!kullanici?.password) {
                 await bcrypt.compare(sifre, SAHTE_HASH);
@@ -52,7 +64,7 @@ const saglayicilar: Provider[] = [
             if (kullanici.loginAttempts > 0 || kullanici.loginLockedUntil) {
                 await db.user.update({ where: { id: kullanici.id }, data: { loginAttempts: 0, loginLockedUntil: null } });
             }
-            return { id: kullanici.id, name: kullanici.name, email: kullanici.email, image: kullanici.image };
+            return { id: kullanici.id, name: kullanici.name, email: kullanici.email, image: kullanici.image, username: kullanici.username };
         },
     }),
 ];
@@ -108,7 +120,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         async jwt({ token, user, trigger }) {
             if (user?.id) {
                 token.id = user.id;
-                token.tazelendi = 0; // hemen aşağıda veritabanından doldurulur
+                // Şifreyle girişte kullanıcı az önce okundu; tekrar sorgulamaya gerek yok.
+                // OAuth'ta ilk girişte kullanıcı adı henüz atanmamış olabilir → aşağıda okunur.
+                if (user.username) {
+                    token.name = user.name;
+                    token.picture = user.image;
+                    token.username = user.username;
+                    token.tazelendi = Date.now();
+                    return token;
+                }
+                token.tazelendi = 0;
             }
             if (!token.id) return token;
 

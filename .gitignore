@@ -47,3 +47,6 @@ next-env.d.ts
 /prisma/*.db-journal
 /*.db
 /*.db-journal
+
+# kişisel hesap bilgileri
+hesap_bilgi.txt
