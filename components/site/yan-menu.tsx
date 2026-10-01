@@ -53,7 +53,7 @@ export function YanMenuIcerik({ kullanici, seviye, kapat }: Props & { kapat?: ()
                 </span>
             </Link>
 
-            <nav className="relative space-y-1 px-4">
+            <nav className="relative space-y-2 px-4">
                 {MENU.map((o) => {
                     const aktif = !o.yakinda && (o.href === "/" ? yol === "/" : yol.startsWith(o.href));
                     const sinif = cn(
@@ -77,8 +77,8 @@ export function YanMenuIcerik({ kullanici, seviye, kapat }: Props & { kapat?: ()
                 })}
             </nav>
 
-            <div className="relative mt-6 flex-1 overflow-y-auto px-4">
-                <p className="mb-1.5 flex items-center justify-between px-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-foreground/40">
+            <div className="relative mt-8 flex-1 space-y-1.5 overflow-y-auto px-4">
+                <p className="mb-2 flex items-center justify-between px-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-foreground/40">
                     Kütüphanem
                 </p>
                 {KUTUPHANE.map((l) => (
