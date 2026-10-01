@@ -55,6 +55,6 @@ export const env = {
     ...veri,
     APP_URL: (
         veri.APP_URL
-        ?? (VERCEL_PROJECT_PRODUCTION_URL ? `https://${VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3020")
+        ?? (VERCEL_PROJECT_PRODUCTION_URL ? `https://${VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3025")
     ).replace(/\/$/, ""),
 };

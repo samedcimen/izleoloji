@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3025",
     "build": "prisma generate && next build",
-    "start": "next start -p 3020",
+    "start": "next start -p 3025",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "postinstall": "prisma generate",
