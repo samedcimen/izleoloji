@@ -27,15 +27,20 @@ export function Avatar({ kullanici, className }: { kullanici: MenuKullanici; cla
 }
 
 // Profil resmine tıklayınca açılan menü. tetikleyici: yan menüde avatar + isim, mobilde yalnız avatar.
-export function KullaniciMenusu({ kullanici, tetikleyici, yon = "bottom" }: {
+// tetikleyiciSinif: yuvarlak avatar yerine kart tetikleyicide köşe/çerçeve ayarı
+export function KullaniciMenusu({ kullanici, tetikleyici, yon = "bottom", tetikleyiciSinif }: {
     kullanici: MenuKullanici;
     tetikleyici?: React.ReactNode;
-    yon?: "bottom" | "right";
+    yon?: "bottom" | "right" | "top";
+    tetikleyiciSinif?: string;
 }) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger
-                className="flex w-full items-center gap-3 rounded-full p-0.5 text-left ring-2 ring-transparent transition hover:ring-violet-400/60 focus-visible:ring-violet-400 focus-visible:outline-none"
+                className={cn(
+                    "flex w-full items-center gap-3 rounded-full p-0.5 text-left ring-2 ring-transparent transition hover:ring-violet-400/60 focus-visible:ring-violet-400 focus-visible:outline-none",
+                    tetikleyiciSinif,
+                )}
                 aria-label="Hesap menüsü"
             >
                 {tetikleyici ?? <Avatar kullanici={kullanici} />}

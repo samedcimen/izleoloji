@@ -2,6 +2,9 @@ import { anaSayfaVerisi, turIcerikleri } from "@/lib/tmdb/ana-sayfa";
 import { KESIF_TURLERI } from "@/lib/tmdb/turler";
 import { UstMenu, type MenuKullanici } from "@/components/site/ust-menu";
 import { YanMenu } from "@/components/site/yan-menu";
+import { YAN_MENU_GENISLIK } from "@/lib/ayarlar/menu";
+import { db } from "@/lib/db";
+import { seviyeHesapla } from "@/lib/seviye";
 import { Serit } from "@/components/icerik/serit";
 import { PosterKarti } from "@/components/icerik/poster-karti";
 import { Vitrin } from "./vitrin";
@@ -11,13 +14,17 @@ import { TurSeridi } from "./tur-seridi";
 
 // Giriş yapmış kullanıcının ana sayfası. TMDB verisi tek önbellek kaydından gelir (6 saatte bir yenilenir).
 // "Kaldığın yerden" ve "arkadaşların ne izledi" bölümleri izleme kaydı ve takip geldiğinde (aşama 4-5) eklenecek.
-export async function GirisliAnaSayfa({ kullanici }: { kullanici: MenuKullanici }) {
+export async function GirisliAnaSayfa({ kullanici, kullaniciId }: { kullanici: MenuKullanici; kullaniciId: string }) {
     const ilkTur = KESIF_TURLERI[0];
-    const [veri, turIlk] = await Promise.all([anaSayfaVerisi(), turIcerikleri(ilkTur.film, ilkTur.dizi)]);
+    const [veri, turIlk, xp] = await Promise.all([
+        anaSayfaVerisi(),
+        turIcerikleri(ilkTur.film, ilkTur.dizi),
+        db.user.findUnique({ where: { id: kullaniciId }, select: { xp: true } }).then((u) => u?.xp ?? 0),
+    ]);
 
     return (
-        <div className="min-h-dvh bg-background text-foreground lg:pl-[72px]">
-            <YanMenu kullanici={kullanici} />
+        <div className={`min-h-dvh bg-background text-foreground ${YAN_MENU_GENISLIK}`}>
+            <YanMenu kullanici={kullanici} seviye={seviyeHesapla(xp)} />
             <UstMenu kullanici={kullanici} />
             <main>
                 <Vitrin ogeler={veri.vitrin} />

@@ -18,6 +18,7 @@ export default async function AnaSayfa() {
     if (oturum?.user) {
         return (
             <GirisliAnaSayfa
+                kullaniciId={oturum.user.id}
                 kullanici={{ ad: oturum.user.name ?? null, kullaniciAdi: oturum.user.username, resim: oturum.user.image ?? null }}
             />
         );
