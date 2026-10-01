@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { auth } from "@/auth";
+import { oturumAl } from "@/lib/oturum";
 import { proje } from "@/lib/ayarlar/proje";
 import { posterHavuzu } from "@/lib/tmdb/trend";
 import { PosterDuvari } from "@/components/giris-ekrani/poster-duvari";
@@ -12,17 +12,8 @@ export const metadata: Metadata = {
 
 // Giriş yapan kullanıcı vitrinli ana sayfayı, misafir poster duvarlı karşılama ekranını görür.
 export default async function AnaSayfa() {
-    // auth() hata verirse (ör. AUTH_SECRET eksik) sayfa çökmesin, misafir olarak gösterilsin
-    const oturum = await auth().catch(() => null);
-
-    if (oturum?.user) {
-        return (
-            <GirisliAnaSayfa
-                kullaniciId={oturum.user.id}
-                kullanici={{ ad: oturum.user.name ?? null, kullaniciAdi: oturum.user.username, resim: oturum.user.image ?? null }}
-            />
-        );
-    }
+    const oturum = await oturumAl();
+    if (oturum?.user) return <GirisliAnaSayfa />;
 
     const havuz = await posterHavuzu().catch(() => []);
     return (
