@@ -7,7 +7,7 @@ export default async function OturumDuzeni({ children }: LayoutProps<"/">) {
     const havuz = await posterHavuzu().catch(() => []);
 
     return (
-        <main className="dark relative isolate flex min-h-dvh flex-1 flex-col items-center justify-center overflow-hidden px-4 py-10">
+        <main className="relative isolate flex min-h-dvh flex-1 flex-col items-center justify-center overflow-hidden px-4 py-10">
             <PosterDuvari havuz={havuz} />
             {children}
         </main>

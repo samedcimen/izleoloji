@@ -41,7 +41,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     return (
         <html
             lang={proje.dil}
-            className={cn("h-full antialiased font-sans", outfit.variable, geistMono.variable)}
+            className={cn("dark h-full antialiased font-sans", outfit.variable, geistMono.variable)}
             suppressHydrationWarning
         >
             <body className="min-h-full flex flex-col">{children}</body>
