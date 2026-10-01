@@ -26,7 +26,7 @@ export default async function AnaSayfa() {
 
     const havuz = await posterHavuzu().catch(() => []);
     return (
-        <main className="dark relative isolate flex min-h-dvh flex-1 flex-col items-center justify-end overflow-hidden bg-background px-4 pb-10 text-foreground sm:justify-center sm:pb-0">
+        <main className="relative isolate flex min-h-dvh flex-1 flex-col items-center justify-end overflow-hidden bg-background px-4 pb-10 text-foreground sm:justify-center sm:pb-0">
             <PosterDuvari havuz={havuz} />
             <KarsilamaKarti />
             <p className="absolute bottom-3 left-1/2 z-10 -translate-x-1/2 text-[10px] text-white/30">

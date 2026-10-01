@@ -30,7 +30,7 @@ export function Vitrin({ ogeler }: { ogeler: VitrinOge[] }) {
 
     return (
         <section
-            className="dark relative isolate h-[78svh] min-h-[520px] max-h-[820px] w-full overflow-hidden bg-background text-foreground"
+            className="relative isolate h-[78svh] min-h-[520px] max-h-[820px] w-full overflow-hidden bg-background text-foreground"
             onMouseEnter={() => setDurdu(true)}
             onMouseLeave={() => setDurdu(false)}
             aria-roledescription="carousel"

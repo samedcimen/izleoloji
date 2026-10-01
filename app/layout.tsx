@@ -4,7 +4,6 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { proje } from "@/lib/ayarlar/proje";
 import { env } from "@/lib/env";
-import { TemaSaglayici } from "@/components/tema/tema-saglayici";
 
 // Türkçe karakterler (ş, ğ, ı, İ) latin-ext alt kümesinde
 const outfit = Outfit({ subsets: ["latin", "latin-ext"], variable: "--font-sans" });
@@ -42,12 +41,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     return (
         <html
             lang={proje.dil}
-            className={cn("h-full antialiased font-sans", outfit.variable, geistMono.variable)}
+            className={cn("dark h-full antialiased font-sans", outfit.variable, geistMono.variable)}
             suppressHydrationWarning
         >
-            <body className="min-h-full flex flex-col">
-                <TemaSaglayici>{children}</TemaSaglayici>
-            </body>
+            <body className="min-h-full flex flex-col">{children}</body>
         </html>
     );
 }

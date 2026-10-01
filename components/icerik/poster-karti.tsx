@@ -30,7 +30,7 @@ export function PosterKarti({ icerik, oncelikli, className }: { icerik: IcerikKa
                     </span>
                 )}
             </div>
-            <p className="mt-2 line-clamp-1 text-sm font-semibold text-foreground/90 transition group-hover:text-violet-600 dark:group-hover:text-violet-300">{icerik.baslik}</p>
+            <p className="mt-2 line-clamp-1 text-sm font-semibold text-foreground/90 transition group-hover:text-violet-300">{icerik.baslik}</p>
             <p className="text-xs text-foreground/45">
                 {icerik.tip === "film" ? "Film" : "Dizi"}
                 {icerik.yil && ` · ${icerik.yil}`}

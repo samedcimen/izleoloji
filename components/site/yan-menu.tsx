@@ -6,12 +6,11 @@ import { Bookmark, Film, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MENU } from "@/lib/ayarlar/menu";
 import type { SeviyeBilgisi } from "@/lib/seviye";
-import { TemaSecici } from "@/components/tema/tema-secici";
 import { Avatar, KullaniciMenusu, type MenuKullanici } from "./kullanici-menusu";
 
 // Yan menü paneli: masaüstünde sabit (272px, içerik boşluğu YAN_MENU_GENISLIK), mobilde
 // üst çubuktaki ☰ ile soldan açılan çekmecede aynı içerik. Mor ışımalı tek panel.
-export const YAN_MENU_ZEMIN = "bg-[#f8f6fd] dark:bg-[#0a0812]";
+export const YAN_MENU_ZEMIN = "bg-[#0a0812]";
 
 // Listeler özelliği gelince gerçek listelerle değişecek
 const KUTUPHANE = [
@@ -43,14 +42,14 @@ export function YanMenuIcerik({ kullanici, seviye, kapat }: Props & { kapat?: ()
 
     return (
         <>
-            <div aria-hidden className="pointer-events-none absolute -left-24 -top-24 size-80 rounded-full bg-violet-500/20 blur-3xl dark:bg-violet-600/30" />
-            <div aria-hidden className="pointer-events-none absolute -bottom-32 -right-24 size-72 rounded-full bg-fuchsia-500/10 blur-3xl dark:bg-fuchsia-600/15" />
+            <div aria-hidden className="pointer-events-none absolute -left-24 -top-24 size-80 rounded-full bg-violet-600/30 blur-3xl" />
+            <div aria-hidden className="pointer-events-none absolute -bottom-32 -right-24 size-72 rounded-full bg-fuchsia-600/15 blur-3xl" />
 
             <Link href="/" onClick={kapat} className="relative flex h-20 shrink-0 items-center gap-2.5 px-6 text-2xl font-black tracking-tight">
                 <span className="grid size-8 place-items-center rounded-xl bg-linear-to-br from-violet-500 to-fuchsia-500 text-sm text-white">i</span>
                 <span>
                     <span className="text-foreground">izle</span>
-                    <span className="bg-linear-to-br from-violet-500 to-fuchsia-500 bg-clip-text text-transparent dark:from-violet-400 dark:to-fuchsia-400">oloji</span>
+                    <span className="bg-linear-to-br from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">oloji</span>
                 </span>
             </Link>
 
@@ -92,9 +91,7 @@ export function YanMenuIcerik({ kullanici, seviye, kapat }: Props & { kapat?: ()
                 ))}
             </div>
 
-            <TemaSecici className="relative mx-4 mb-3" />
-
-            <div className="relative mx-4 mb-4 rounded-2xl bg-linear-to-br from-violet-500/15 to-fuchsia-500/5 p-1.5 ring-1 ring-violet-400/25 dark:from-violet-600/25 dark:to-fuchsia-600/10 dark:ring-violet-400/20">
+            <div className="relative mx-4 mb-4 rounded-2xl bg-linear-to-br from-violet-600/25 to-fuchsia-600/10 p-1.5 ring-1 ring-violet-400/20">
                 <KullaniciMenusu
                     kullanici={kullanici}
                     yon="top"
@@ -121,7 +118,7 @@ function SeviyeCubugu({ seviye }: { seviye: SeviyeBilgisi }) {
     return (
         <span className="block" title={seviye.sonrakiEsik ? `Sonraki seviyeye ${seviye.sonrakiEsik - seviye.xp} XP` : "En yüksek seviye"}>
             <span className="flex items-center justify-between text-[11px]">
-                <span className="font-semibold text-violet-700 dark:text-violet-200">{seviye.ad} · Sv. {seviye.no}</span>
+                <span className="font-semibold text-violet-200">{seviye.ad} · Sv. {seviye.no}</span>
                 <span className="text-foreground/45">{seviye.sonrakiEsik ? `${seviye.xp} / ${seviye.sonrakiEsik} XP` : `${seviye.xp} XP`}</span>
             </span>
             <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-foreground/10">

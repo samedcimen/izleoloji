@@ -28,10 +28,8 @@ export async function GirisliAnaSayfa({ kullanici, kullaniciId }: { kullanici: M
             <UstMenu kullanici={kullanici} seviye={seviyeHesapla(xp)} />
             <main>
                 <Vitrin ogeler={veri.vitrin} />
-                {/* Açık temada koyu vitrinden açık sayfaya yumuşak geçiş (koyu temada vitrin zaten zemine eriyor) */}
-                <div aria-hidden className="h-16 bg-linear-to-b from-[oklch(0.147_0.004_49.25)] to-background dark:hidden" />
 
-                <div className="relative z-10 space-y-12 pb-20 sm:space-y-14 dark:-mt-10">
+                <div className="relative z-10 -mt-10 space-y-12 pb-20 sm:space-y-14">
                     <Top10 baslik="Bu hafta yerli Top 10" aciklama="En popüler Türk film ve dizileri" icerikler={veri.yerliTop10} />
 
                     <PlatformSeridi platformlar={veri.platformlar} />
