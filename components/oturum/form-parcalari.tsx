@@ -25,6 +25,9 @@ export function Alan({ ad, etiket, hatalar, ipucu, sag, className, ...props }: A
                 {sag}
             </div>
             <Input
+                // Hatalı gönderimden sonra defaultValue değişir (girilen değer geri verilir); Base UI
+                // başlangıç değerinin sonradan değişmesine izin vermediği için alan yeniden oluşturulur
+                key={props.defaultValue === undefined ? undefined : String(props.defaultValue)}
                 id={ad}
                 name={ad}
                 aria-invalid={hataVar || undefined}
