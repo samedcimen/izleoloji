@@ -104,10 +104,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     trustHost: true,
     providers: saglayicilar,
     pages: { signIn: "/giris", error: "/giris" },
+    // Varsayılan "authjs.session-token" adı localhost'taki diğer Auth.js projeleriyle (ör. eski izleoloji)
+    // çakışıyor: tarayıcı çerezi port ayırmadan gönderir, başka anahtarla yazılmış çerez açılamaz.
+    // Güvenlik seçenekleri (httpOnly, sameSite, secure) Auth.js varsayılanlarından gelir.
+    cookies: { sessionToken: { name: "izleoloji.oturum" } },
     // Yanlış şifre olağan bir durum; her seferinde hata yığını basılmasın
     logger: {
         error(hata) {
             if (hata.name === "CredentialsSignin") return;
+            // Açılamayan eski/yabancı oturum çerezi: kullanıcı misafir sayılır, yığın basmaya gerek yok
+            if (hata.name === "JWTSessionError") return console.warn("[auth] Geçersiz oturum çerezi yok sayıldı.");
             console.error(hata);
         },
     },
