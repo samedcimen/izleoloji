@@ -12,11 +12,11 @@ import { Avatar, KullaniciMenusu, type MenuKullanici } from "./kullanici-menusu"
 // üst çubuktaki ☰ ile soldan açılan çekmecede aynı içerik. Mor ışımalı tek panel.
 export const YAN_MENU_ZEMIN = "bg-[#0a0812]";
 
-// Listeler özelliği gelince gerçek listelerle değişecek
+// Listeler özelliği gelince kullanıcının gerçek listeleriyle değişecek
 const KUTUPHANE = [
-    { ad: "Sonra izleyeceklerim", ikon: Bookmark, renk: "from-violet-600 to-indigo-600" },
-    { ad: "Favorilerim", ikon: Heart, renk: "from-rose-500 to-orange-500" },
-    { ad: "İzlediklerim", ikon: Film, renk: "from-emerald-500 to-teal-600" },
+    { ad: "Sonra izleyeceklerim", href: "/listelerim/sonra-izle", ikon: Bookmark, renk: "from-violet-600 to-indigo-600" },
+    { ad: "Favorilerim", href: "/listelerim/favoriler", ikon: Heart, renk: "from-rose-500 to-orange-500" },
+    { ad: "İzlediklerim", href: "/listelerim/izlediklerim", ikon: Film, renk: "from-emerald-500 to-teal-600" },
 ];
 
 const Yakinda = () => (
@@ -79,15 +79,23 @@ export function YanMenuIcerik({ kullanici, seviye, kapat }: Props & { kapat?: ()
 
             <div className="relative mt-6 flex-1 overflow-y-auto px-4">
                 <p className="mb-1.5 flex items-center justify-between px-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-foreground/40">
-                    Kütüphanem <Yakinda />
+                    Kütüphanem
                 </p>
                 {KUTUPHANE.map((l) => (
-                    <span key={l.ad} className="flex items-center gap-3 rounded-lg p-1.5 opacity-50" aria-disabled>
-                        <span className={cn("grid size-9 shrink-0 place-items-center rounded-md bg-linear-to-br text-white", l.renk)}>
+                    <Link
+                        key={l.ad}
+                        href={l.href}
+                        onClick={kapat}
+                        className={cn(
+                            "group flex items-center gap-3 rounded-lg p-1.5 transition hover:bg-foreground/5",
+                            yol === l.href && "bg-foreground/10",
+                        )}
+                    >
+                        <span className={cn("grid size-9 shrink-0 place-items-center rounded-md bg-linear-to-br text-white transition group-hover:scale-105", l.renk)}>
                             <l.ikon className="size-4" />
                         </span>
-                        <span className="truncate text-sm font-semibold">{l.ad}</span>
-                    </span>
+                        <span className="truncate text-sm font-semibold text-foreground/75 transition group-hover:text-foreground">{l.ad}</span>
+                    </Link>
                 ))}
             </div>
 
