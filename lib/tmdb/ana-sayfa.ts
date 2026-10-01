@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache";
 import { tmdbFetch } from "./istemci";
 import type { IcerikKarti, IcerikTipi } from "./gorsel";
 import { turAdi } from "./turler";
+import { baslikLogosu } from "./detay";
 
 const ALTI_SAAT = 60 * 60 * 6;
 
@@ -31,6 +32,8 @@ type HamDetay = Ham & {
     genres?: { id: number; name: string }[];
     videos?: { results: { key: string; site: string; type: string; iso_639_1: string; official: boolean }[] };
     images?: { logos: { file_path: string; iso_639_1: string | null; aspect_ratio: number }[] };
+    original_title?: string;
+    original_name?: string;
 };
 
 const tmdbTip = (tip: IcerikTipi) => (tip === "film" ? "movie" : "tv");
@@ -77,8 +80,6 @@ async function vitrinDetay(o: IcerikKarti): Promise<VitrinOge> {
 
     const videolar = d?.videos?.results.filter((v) => v.site === "YouTube" && v.type === "Trailer") ?? [];
     const fragman = videolar.find((v) => v.iso_639_1 === "tr") ?? videolar.find((v) => v.official) ?? videolar[0];
-    const logolar = d?.images?.logos ?? [];
-    const logo = logolar.find((l) => l.iso_639_1 === "tr") ?? logolar.find((l) => l.iso_639_1 === "en") ?? logolar[0];
 
     const dk = d?.runtime ?? d?.episode_run_time?.[0];
     const sure =
@@ -89,7 +90,7 @@ async function vitrinDetay(o: IcerikKarti): Promise<VitrinOge> {
     return {
         ...o,
         ozet: o.ozet || d?.overview || "",
-        logoPath: logo?.file_path ?? null,
+        logoPath: baslikLogosu(d?.images?.logos ?? [], o.baslik, d?.original_title ?? d?.original_name ?? o.baslik),
         fragmanKey: fragman?.key ?? null,
         turAdlari: (d?.genres?.map((g) => g.name) ?? o.turIds.map((id) => turAdi(id)).filter((x): x is string => !!x)).slice(0, 3),
         sure,
@@ -160,7 +161,8 @@ async function anaSayfaVerisiGetir() {
     };
 }
 
-export const anaSayfaVerisi = unstable_cache(anaSayfaVerisiGetir, ["ana-sayfa"], { revalidate: ALTI_SAAT });
+// Biçim/kural değişince anahtar sürümü artırılmalı (önbellek kod değişince kendiliğinden yenilenmez)
+export const anaSayfaVerisi = unstable_cache(anaSayfaVerisiGetir, ["ana-sayfa", "v2"], { revalidate: ALTI_SAAT });
 
 // ── Türe göre keşif (sayfa açıldıktan sonra seçime göre istenir) ────────────
 
