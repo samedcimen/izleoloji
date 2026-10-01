@@ -20,7 +20,7 @@ export function PlatformSeridi({ platformlar }: { platformlar: Platform[] }) {
             <div className="mb-4 flex flex-col gap-3 px-4 sm:px-8 lg:flex-row lg:items-end lg:justify-between">
                 <div>
                     <h2 className="text-lg font-bold tracking-tight sm:text-xl">Platformlarda yeni</h2>
-                    <p className="mt-0.5 text-sm text-white/50">Türkiye kataloğuna son eklenen film ve diziler</p>
+                    <p className="mt-0.5 text-sm text-foreground/50">Türkiye kataloğuna son eklenen film ve diziler</p>
                 </div>
                 <div
                     className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0 [&::-webkit-scrollbar]:hidden"
@@ -36,7 +36,7 @@ export function PlatformSeridi({ platformlar }: { platformlar: Platform[] }) {
                             onClick={() => setSecili(i)}
                             className={cn(
                                 "flex shrink-0 items-center gap-2 rounded-full border py-1 pl-1 pr-3 text-xs font-semibold transition",
-                                i === secili ? "border-violet-400/60 bg-violet-500/20 text-white" : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white",
+                                i === secili ? "border-violet-400/60 bg-violet-500/20 text-foreground" : "border-foreground/10 bg-foreground/5 text-foreground/60 hover:bg-foreground/10 hover:text-foreground",
                             )}
                         >
                             <Image src={`/logo/${x.id}.jpg`} alt="" width={22} height={22} className="rounded-full" />

@@ -34,7 +34,7 @@ export function TurSeridi({ ilkIcerikler }: { ilkIcerikler: IcerikKarti[] }) {
                             onClick={() => sec(i)}
                             className={cn(
                                 "flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition",
-                                i === secili ? "border-violet-400/60 bg-violet-500/20 text-white" : "border-white/10 bg-white/5 text-white/65 hover:bg-white/10 hover:text-white",
+                                i === secili ? "border-violet-400/60 bg-violet-500/20 text-foreground" : "border-foreground/10 bg-foreground/5 text-foreground/65 hover:bg-foreground/10 hover:text-foreground",
                             )}
                         >
                             <span aria-hidden>{t.emoji}</span>

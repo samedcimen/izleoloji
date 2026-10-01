@@ -18,9 +18,9 @@ export type MenuKullanici = { ad: string | null; kullaniciAdi: string | null; re
 export function Avatar({ kullanici, className }: { kullanici: MenuKullanici; className?: string }) {
     return kullanici.resim ? (
         // eslint-disable-next-line @next/next/no-img-element -- küçük yerel/OAuth avatarı
-        <img src={kullanici.resim} alt="" className={cn("size-9 shrink-0 rounded-full bg-white/10 object-cover", className)} />
+        <img src={kullanici.resim} alt="" className={cn("size-9 shrink-0 rounded-full bg-foreground/10 object-cover", className)} />
     ) : (
-        <span className={cn("grid size-9 shrink-0 place-items-center rounded-full bg-violet-600 text-sm font-bold", className)}>
+        <span className={cn("grid size-9 shrink-0 place-items-center rounded-full bg-violet-600 text-sm font-bold text-white", className)}>
             {(kullanici.ad ?? "?").slice(0, 1).toLocaleUpperCase("tr-TR")}
         </span>
     );

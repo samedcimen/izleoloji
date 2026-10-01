@@ -42,7 +42,7 @@ export function Serit({ baslik, aciklama, sag, children, className }: {
             <div className="mb-3 flex items-end justify-between gap-4 px-4 sm:px-8">
                 <div>
                     <h2 className="text-lg font-bold tracking-tight sm:text-xl">{baslik}</h2>
-                    {aciklama && <p className="mt-0.5 text-sm text-white/50">{aciklama}</p>}
+                    {aciklama && <p className="mt-0.5 text-sm text-foreground/55">{aciklama}</p>}
                 </div>
                 {sag}
             </div>

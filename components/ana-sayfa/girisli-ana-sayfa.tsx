@@ -25,11 +25,13 @@ export async function GirisliAnaSayfa({ kullanici, kullaniciId }: { kullanici: M
     return (
         <div className={`min-h-dvh bg-background text-foreground ${YAN_MENU_GENISLIK}`}>
             <YanMenu kullanici={kullanici} seviye={seviyeHesapla(xp)} />
-            <UstMenu kullanici={kullanici} />
+            <UstMenu kullanici={kullanici} seviye={seviyeHesapla(xp)} />
             <main>
                 <Vitrin ogeler={veri.vitrin} />
+                {/* Açık temada koyu vitrinden açık sayfaya yumuşak geçiş (koyu temada vitrin zaten zemine eriyor) */}
+                <div aria-hidden className="h-16 bg-linear-to-b from-[oklch(0.147_0.004_49.25)] to-background dark:hidden" />
 
-                <div className="relative z-10 -mt-10 space-y-12 pb-20 sm:space-y-14">
+                <div className="relative z-10 space-y-12 pb-20 sm:space-y-14 dark:-mt-10">
                     <Top10 baslik="Bu hafta yerli Top 10" aciklama="En popüler Türk film ve dizileri" icerikler={veri.yerliTop10} />
 
                     <PlatformSeridi platformlar={veri.platformlar} />
@@ -61,7 +63,7 @@ export async function GirisliAnaSayfa({ kullanici, kullaniciId }: { kullanici: M
                     )}
                 </div>
             </main>
-            <footer className="border-t border-white/10 px-4 py-8 text-center text-xs text-white/35 sm:px-8">
+            <footer className="border-t border-foreground/10 px-4 py-8 text-center text-xs text-foreground/35 sm:px-8">
                 Film ve dizi verileri ile görseller TMDB&apos;den sağlanır. Bu ürün TMDB tarafından onaylanmamıştır.
             </footer>
         </div>
