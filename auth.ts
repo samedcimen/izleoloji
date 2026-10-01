@@ -118,9 +118,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         },
     },
     events: {
-        // OAuth ile ilk kez gelen kullanıcıya kullanıcı adı, avatar ve arama metni ver
+        // OAuth ile ilk kez gelen kullanıcıya kullanıcı adı, avatar ve arama metni ver.
+        // Dikkat: Auth.js bu olayı aynı e-postalı MEVCUT hesaba OAuth bağlarken de tetikliyor
+        // (@auth/core handle-login); kullanıcı adı olan hesaba dokunulmaz.
         async createUser({ user }) {
-            if (!user.id) return;
+            if (!user.id || user.username) return;
             const email = user.email?.toLowerCase();
             const username = await kullaniciAdiUret(user.name ?? email?.split("@")[0] ?? "izleyici");
             await db.user.update({
