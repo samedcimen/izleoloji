@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 // Giriş yapan kullanıcı vitrinli ana sayfayı, misafir poster duvarlı karşılama ekranını görür.
 export default async function AnaSayfa() {
     const oturum = await oturumAl();
-    if (oturum?.user) return <GirisliAnaSayfa />;
+    if (oturum?.user) return <GirisliAnaSayfa userId={oturum.user.id} />;
 
     const havuz = await posterHavuzu().catch(() => []);
     return (

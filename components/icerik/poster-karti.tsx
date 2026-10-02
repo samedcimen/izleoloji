@@ -1,12 +1,22 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Star } from "lucide-react";
+import { Bookmark, Check, Play, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { icerikYolu, posterUrl, type IcerikKarti } from "@/lib/tmdb/gorsel";
 
 export const KART_GENISLIK = "w-[8.5rem] sm:w-36 md:w-40 lg:w-44";
 
-export function PosterKarti({ icerik, oncelikli, className }: { icerik: IcerikKarti; oncelikli?: boolean; className?: string }) {
+export type KartDurumu = "izledi" | "izleyecek" | "izliyor" | null | undefined;
+
+const ROZET = {
+    izledi: { ikon: Check, sinif: "bg-emerald-500", ad: "İzledin" },
+    izleyecek: { ikon: Bookmark, sinif: "bg-violet-600", ad: "Listende" },
+    izliyor: { ikon: Play, sinif: "bg-sky-500", ad: "İzliyorsun" },
+} as const;
+
+// durum: giriş yapmış kullanıcının bu içerikle ilgili kaydı (sağ üstte rozet)
+export function PosterKarti({ icerik, oncelikli, className, durum }: { icerik: IcerikKarti; oncelikli?: boolean; className?: string; durum?: KartDurumu }) {
+    const rozet = durum ? ROZET[durum] : null;
     return (
         <Link href={icerikYolu(icerik)} className={cn("group block shrink-0 snap-start", KART_GENISLIK, className)}>
             <div className="relative aspect-2/3 overflow-hidden rounded-xl bg-foreground/5 ring-1 ring-foreground/10 transition duration-300 group-hover:-translate-y-1 group-hover:ring-violet-400/70 group-hover:shadow-[0_18px_40px_-14px_rgb(124_58_237/0.6)]">
@@ -22,6 +32,11 @@ export function PosterKarti({ icerik, oncelikli, className }: { icerik: IcerikKa
                     />
                 ) : (
                     <div className="grid size-full place-items-center p-3 text-center text-xs text-foreground/40">{icerik.baslik}</div>
+                )}
+                {rozet && (
+                    <span title={rozet.ad} className={cn("absolute right-2 top-2 grid size-6 place-items-center rounded-full text-white shadow-lg ring-2 ring-black/40", rozet.sinif)}>
+                        <rozet.ikon className="size-3.5" strokeWidth={3} />
+                    </span>
                 )}
                 {icerik.puan > 0 && (
                     <span className="absolute left-2 top-2 flex items-center gap-0.5 rounded-full bg-black/65 px-1.5 py-0.5 text-[11px] font-semibold text-white backdrop-blur-sm">

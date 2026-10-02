@@ -11,6 +11,9 @@ import { KisiSeridi } from "@/components/detay/kisi-seridi";
 import { FragmanSeridi } from "@/components/detay/fragman-seridi";
 import { Serit } from "@/components/icerik/serit";
 import { PosterKarti } from "@/components/icerik/poster-karti";
+import { KayitPaneli } from "@/components/detay/kayit-paneli";
+import { oturumAl } from "@/lib/oturum";
+import { BOS_KAYIT, durumHaritasi, icerikListeleri, kayitDurumu } from "@/lib/kutuphane";
 
 async function filmAl(param: string) {
     const id = Number(param);
@@ -32,6 +35,12 @@ export async function generateMetadata({ params }: PageProps<"/film/[id]">): Pro
 
 export default async function FilmSayfasi({ params }: PageProps<"/film/[id]">) {
     const f = await filmAl((await params).id);
+    const userId = (await oturumAl())?.user?.id;
+    const [kayit, listeler, durumlar] = await Promise.all([
+        userId ? kayitDurumu(userId, { tmdbId: f.id, tip: "film" }) : BOS_KAYIT,
+        userId ? icerikListeleri(userId, { tmdbId: f.id, tip: "film" }) : [],
+        durumHaritasi(userId, [...f.oneriler, ...f.benzerler]),
+    ]);
 
     const bilgiler = ([
         f.yonetmenler.length ? { etiket: f.yonetmenler.length > 1 ? "Yönetmenler" : "Yönetmen", deger: <KisiBaglantilari kisiler={f.yonetmenler} /> } : null,
@@ -46,7 +55,14 @@ export default async function FilmSayfasi({ params }: PageProps<"/film/[id]">) {
 
     return (
         <main className="pb-20">
-            <DetayVitrin d={f} bilgiler={[f.yil ? String(f.yil) : null, sureMetni(f.sure)]} />
+            <DetayVitrin
+                d={f}
+                bilgiler={[f.yil ? String(f.yil) : null, sureMetni(f.sure)]}
+                aksiyonlar={
+                    // key: sunucudan yeni kayıt gelince (refresh) panel güncel durumla yeniden kurulur
+                    <KayitPaneli key={JSON.stringify(kayit)} tip="film" tmdbId={f.id} baslik={f.baslik} fragmanKey={f.fragmanlar[0]?.key ?? null} girisli={!!userId} ilk={kayit} listeler={listeler} />
+                }
+            />
 
             <div className="space-y-14">
                 <BilgiBolumu baslik={f.baslik} posterPath={f.posterPath} ozet={f.ozet} bilgiler={bilgiler} platformlar={f.platformlar} />
@@ -71,12 +87,12 @@ export default async function FilmSayfasi({ params }: PageProps<"/film/[id]">) {
 
                 {f.oneriler.length > 0 && (
                     <Serit baslik="Bunu beğenenler bunları da izledi">
-                        {f.oneriler.map((o) => <PosterKarti key={`${o.tip}-${o.id}`} icerik={o} />)}
+                        {f.oneriler.map((o) => <PosterKarti key={`${o.tip}-${o.id}`} icerik={o} durum={durumlar[`${o.tip}-${o.id}`]} />)}
                     </Serit>
                 )}
                 {f.benzerler.length > 0 && (
                     <Serit baslik="Benzer filmler">
-                        {f.benzerler.map((o) => <PosterKarti key={`${o.tip}-${o.id}`} icerik={o} />)}
+                        {f.benzerler.map((o) => <PosterKarti key={`${o.tip}-${o.id}`} icerik={o} durum={durumlar[`${o.tip}-${o.id}`]} />)}
                     </Serit>
                 )}
             </div>

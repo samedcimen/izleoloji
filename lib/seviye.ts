@@ -34,3 +34,10 @@ export function seviyeHesapla(xp: number): SeviyeBilgisi {
         ilerleme: sonraki ? Math.round(((deger - mevcut.esik) / (sonraki.esik - mevcut.esik)) * 100) : 100,
     };
 }
+
+// XP kazanımları — izleme kaydıyla aynı veritabanı işleminde uygulanır (lib/kutuphane.ts)
+export const XP = {
+    IZLEDI: 10, // film/dizi "izledim"
+    PUAN: 5, // ilk kez puan verme
+    BOLUM: 1, // dizi bölümü izlendi
+} as const;

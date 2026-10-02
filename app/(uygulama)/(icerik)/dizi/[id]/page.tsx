@@ -11,6 +11,9 @@ import { FragmanSeridi } from "@/components/detay/fragman-seridi";
 import { Sezonlar } from "@/components/detay/sezonlar";
 import { Serit } from "@/components/icerik/serit";
 import { PosterKarti } from "@/components/icerik/poster-karti";
+import { KayitPaneli } from "@/components/detay/kayit-paneli";
+import { oturumAl } from "@/lib/oturum";
+import { BOS_KAYIT, durumHaritasi, icerikListeleri, izlenenBolumler, kayitDurumu, yayinlanmisBolumler } from "@/lib/kutuphane";
 
 async function diziAl(param: string) {
     const id = Number(param);
@@ -37,7 +40,22 @@ export default async function DiziSayfasi({ params }: PageProps<"/dizi/[id]">) {
     const normal = d.sezonlar.filter((s) => s.no > 0);
     const buYil = new Date().getFullYear();
     const ilkNo = d.sonrakiBolum?.sezon ?? [...normal].reverse().find((s) => (s.yil ?? 0) <= buYil)?.no ?? normal[0]?.no ?? d.sezonlar[0]?.no;
-    const ilkSezon = ilkNo !== undefined ? await sezonDetay(d.id, ilkNo) : null;
+    const userId = (await oturumAl())?.user?.id;
+    const anahtar = { tmdbId: d.id, tip: "dizi" as const };
+    const izlenenler = userId ? await izlenenBolumler(userId, d.id) : [];
+    // Bölüm izlemeye başlamışsa sayfa, sıradaki izlenmemiş bölümün sezonuyla açılır
+    let acilisNo = ilkNo;
+    if (izlenenler.length) {
+        const izlenenSet = new Set(izlenenler);
+        const siradaki = (await yayinlanmisBolumler(d.id)).find(([s, b]) => !izlenenSet.has(`${s}-${b}`));
+        if (siradaki) acilisNo = siradaki[0];
+    }
+    const [ilkSezon, kayit, listeler, durumlar] = await Promise.all([
+        acilisNo !== undefined ? sezonDetay(d.id, acilisNo) : null,
+        userId ? kayitDurumu(userId, anahtar) : BOS_KAYIT,
+        userId ? icerikListeleri(userId, anahtar) : [],
+        durumHaritasi(userId, [...d.oneriler, ...d.benzerler]),
+    ]);
 
     const bilgiler = ([
         d.yaraticilar.length ? { etiket: "Yaratıcı", deger: <KisiBaglantilari kisiler={d.yaraticilar} /> } : null,
@@ -52,7 +70,13 @@ export default async function DiziSayfasi({ params }: PageProps<"/dizi/[id]">) {
 
     return (
         <main className="pb-20">
-            <DetayVitrin d={d} bilgiler={[d.yil ? String(d.yil) : null, `${d.sezonSayisi} sezon`, d.durum]} />
+            <DetayVitrin
+                d={d}
+                bilgiler={[d.yil ? String(d.yil) : null, `${d.sezonSayisi} sezon`, d.durum]}
+                aksiyonlar={
+                    <KayitPaneli key={JSON.stringify(kayit)} tip="dizi" tmdbId={d.id} baslik={d.baslik} fragmanKey={d.fragmanlar[0]?.key ?? null} girisli={!!userId} ilk={kayit} listeler={listeler} />
+                }
+            />
 
             <div className="space-y-14">
                 <BilgiBolumu baslik={d.baslik} posterPath={d.posterPath} ozet={d.ozet} bilgiler={bilgiler} platformlar={d.platformlar} />
@@ -68,7 +92,7 @@ export default async function DiziSayfasi({ params }: PageProps<"/dizi/[id]">) {
                     </div>
                 )}
 
-                <Sezonlar diziId={d.id} sezonlar={d.sezonlar} ilkSezon={ilkSezon} />
+                <Sezonlar diziId={d.id} sezonlar={d.sezonlar} ilkSezon={ilkSezon} girisli={!!userId} izlenenler={izlenenler} />
 
                 <KisiSeridi baslik="Oyuncular" kisiler={d.oyuncular} />
 
@@ -76,12 +100,12 @@ export default async function DiziSayfasi({ params }: PageProps<"/dizi/[id]">) {
 
                 {d.oneriler.length > 0 && (
                     <Serit baslik="Bunu beğenenler bunları da izledi">
-                        {d.oneriler.map((o) => <PosterKarti key={`${o.tip}-${o.id}`} icerik={o} />)}
+                        {d.oneriler.map((o) => <PosterKarti key={`${o.tip}-${o.id}`} icerik={o} durum={durumlar[`${o.tip}-${o.id}`]} />)}
                     </Serit>
                 )}
                 {d.benzerler.length > 0 && (
                     <Serit baslik="Benzer diziler">
-                        {d.benzerler.map((o) => <PosterKarti key={`${o.tip}-${o.id}`} icerik={o} />)}
+                        {d.benzerler.map((o) => <PosterKarti key={`${o.tip}-${o.id}`} icerik={o} durum={durumlar[`${o.tip}-${o.id}`]} />)}
                     </Serit>
                 )}
             </div>

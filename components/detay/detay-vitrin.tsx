@@ -2,11 +2,11 @@ import Image from "next/image";
 import { Star } from "lucide-react";
 import { arkaPlanUrl, logoUrl } from "@/lib/tmdb/gorsel";
 import type { DiziDetay, FilmDetay } from "@/lib/tmdb/detay";
-import { DetayButonlari } from "./detay-butonlari";
 
 // Detay sayfasının sinematik üst kısmı: tam genişlikte arka plan, varsa başlık logosu,
 // bilgi satırı, slogan ve aksiyonlar. Ana sayfa vitriniyle aynı görsel dil.
-export function DetayVitrin({ d, bilgiler }: { d: FilmDetay | DiziDetay; bilgiler: (string | null)[] }) {
+// aksiyonlar: izleme paneli (KayitPaneli) — sayfa kullanıcının kaydıyla birlikte verir
+export function DetayVitrin({ d, bilgiler, aksiyonlar }: { d: FilmDetay | DiziDetay; bilgiler: (string | null)[]; aksiyonlar: React.ReactNode }) {
     return (
         <section className="relative isolate flex min-h-[72svh] items-end overflow-hidden lg:min-h-[78svh]">
             {d.arkaPlanPath && (
@@ -60,7 +60,7 @@ export function DetayVitrin({ d, bilgiler }: { d: FilmDetay | DiziDetay; bilgile
 
                     {d.slogan && <p className="mb-6 text-base italic text-violet-200/90">“{d.slogan}”</p>}
 
-                    <DetayButonlari baslik={d.baslik} fragmanKey={d.fragmanlar[0]?.key ?? null} />
+                    {aksiyonlar}
                 </div>
             </div>
         </section>
