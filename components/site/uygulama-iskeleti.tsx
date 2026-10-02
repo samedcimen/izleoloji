@@ -4,6 +4,7 @@ import { seviyeHesapla } from "@/lib/seviye";
 import { YAN_MENU_GENISLIK } from "@/lib/ayarlar/menu";
 import { YanMenu } from "./yan-menu";
 import { UstMenu } from "./ust-menu";
+import { AramaSaglayici } from "@/components/arama/arama-penceresi";
 
 // Giriş yapmış kullanıcının tüm iç sayfalarının ortak iskeleti: masaüstünde sabit yan menü,
 // mobilde üst çubuk (☰ çekmece), en altta TMDB atfı. Sayfalar yalnızca kendi içeriğini çizer.
@@ -13,13 +14,15 @@ export async function UygulamaIskeleti({ kullanici, children }: { kullanici: Ses
     const seviye = seviyeHesapla(xp);
 
     return (
-        <div className={`flex min-h-dvh flex-col bg-background text-foreground ${YAN_MENU_GENISLIK}`}>
-            <YanMenu kullanici={menuKullanici} seviye={seviye} />
-            <UstMenu kullanici={menuKullanici} seviye={seviye} />
-            <div className="flex flex-1 flex-col">{children}</div>
-            <footer className="border-t border-foreground/10 px-4 py-8 text-center text-xs text-foreground/35 sm:px-8">
-                Film ve dizi verileri ile görseller TMDB&apos;den sağlanır. Bu ürün TMDB tarafından onaylanmamıştır.
-            </footer>
-        </div>
+        <AramaSaglayici>
+            <div className={`flex min-h-dvh flex-col bg-background text-foreground ${YAN_MENU_GENISLIK}`}>
+                <YanMenu kullanici={menuKullanici} seviye={seviye} />
+                <UstMenu kullanici={menuKullanici} seviye={seviye} />
+                <div className="flex flex-1 flex-col">{children}</div>
+                <footer className="border-t border-foreground/10 px-4 py-8 text-center text-xs text-foreground/35 sm:px-8">
+                    Film ve dizi verileri ile görseller TMDB&apos;den sağlanır. Bu ürün TMDB tarafından onaylanmamıştır.
+                </footer>
+            </div>
+        </AramaSaglayici>
     );
 }

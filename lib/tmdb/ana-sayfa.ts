@@ -38,7 +38,7 @@ type HamDetay = Ham & {
 
 const tmdbTip = (tip: IcerikTipi) => (tip === "film" ? "movie" : "tv");
 
-function kart(tip: IcerikTipi) {
+export function hamdanKart(tip: IcerikTipi) {
     return (h: Ham): IcerikKarti => {
         const tarih = h.release_date || h.first_air_date;
         return {
@@ -57,7 +57,7 @@ function kart(tip: IcerikTipi) {
 
 async function liste(tip: IcerikTipi, yol: string, params: Record<string, string> = {}) {
     const s = await tmdbFetch<Sayfa>(yol, params, ALTI_SAAT).catch(() => ({ results: [] as Ham[] }));
-    return s.results.filter((h) => h.poster_path).map(kart(tip));
+    return s.results.filter((h) => h.poster_path).map(hamdanKart(tip));
 }
 
 const bugun = () => new Date().toISOString().slice(0, 10);
@@ -137,7 +137,7 @@ async function anaSayfaVerisiGetir() {
 
     const trendKartlari = trendler.results
         .filter((h) => (h.media_type === "movie" || h.media_type === "tv") && h.backdrop_path && h.poster_path)
-        .map((h) => kart(h.media_type === "movie" ? "film" : "dizi")(h));
+        .map((h) => hamdanKart(h.media_type === "movie" ? "film" : "dizi")(h));
 
     const vitrin = await Promise.all(trendKartlari.slice(0, 5).map(vitrinDetay));
 

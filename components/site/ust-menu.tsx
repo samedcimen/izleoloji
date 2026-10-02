@@ -8,6 +8,7 @@ import type { SeviyeBilgisi } from "@/lib/seviye";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { KullaniciMenusu, type MenuKullanici } from "./kullanici-menusu";
 import { YAN_MENU_ZEMIN, YanMenuIcerik } from "./yan-menu";
+import { AramaDugmesi } from "@/components/arama/arama-penceresi";
 
 export type { MenuKullanici };
 
@@ -49,7 +50,8 @@ export function UstMenu({ kullanici, seviye }: { kullanici: MenuKullanici; seviy
                     <span>izle</span>
                     <span className="bg-linear-to-br from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">oloji</span>
                 </Link>
-                <div className="ml-auto pr-2">
+                <div className="ml-auto flex items-center gap-1 pr-2">
+                    <AramaDugmesi kisa />
                     <KullaniciMenusu kullanici={kullanici} />
                 </div>
             </div>

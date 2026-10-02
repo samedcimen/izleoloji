@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { MENU } from "@/lib/ayarlar/menu";
 import type { SeviyeBilgisi } from "@/lib/seviye";
 import { Avatar, KullaniciMenusu, type MenuKullanici } from "./kullanici-menusu";
+import { AramaDugmesi } from "@/components/arama/arama-penceresi";
 
 // Yan menü paneli: masaüstünde sabit (272px, içerik boşluğu YAN_MENU_GENISLIK), mobilde
 // üst çubuktaki ☰ ile soldan açılan çekmecede aynı içerik. Mor ışımalı tek panel.
@@ -52,6 +53,10 @@ export function YanMenuIcerik({ kullanici, seviye, kapat }: Props & { kapat?: ()
                     <span className="bg-linear-to-br from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">oloji</span>
                 </span>
             </Link>
+
+            <div className="relative mb-4 px-4">
+                <AramaDugmesi className="max-lg:hidden" />
+            </div>
 
             <nav className="relative space-y-2 px-4">
                 {MENU.map((o) => {

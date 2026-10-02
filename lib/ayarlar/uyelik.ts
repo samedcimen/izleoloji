@@ -27,7 +27,7 @@ export const KULLANICI_ADI_REGEX = new RegExp(`^[a-z0-9_]{${UYELIK.KULLANICI_ADI
 export const YASAKLI_KULLANICI_ADLARI = new Set([
     "admin", "yonetici", "izleoloji", "destek", "api", "giris", "kayit", "cikis", "ayarlar",
     "profil", "kesfet", "radar", "akis", "liste", "listelerim", "film", "dizi", "oyuncu",
-    "kullanici", "sifre_sifirla", "iletisim", "gizlilik", "root", "sistem",
+    "kullanici", "ara", "sifre_sifirla", "iletisim", "gizlilik", "root", "sistem",
 ]);
 
 // İstek sınırları: [en fazla istek, pencere (saniye)]

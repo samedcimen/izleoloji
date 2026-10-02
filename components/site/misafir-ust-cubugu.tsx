@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AramaDugmesi } from "@/components/arama/arama-penceresi";
 
 // Giriş yapmamış ziyaretçinin içerik sayfalarındaki (detay vb.) üst çubuğu
 export function MisafirUstCubugu() {
@@ -9,6 +10,7 @@ export function MisafirUstCubugu() {
                     izle<span className="bg-linear-to-br from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">oloji</span>
                 </Link>
                 <div className="ml-auto flex items-center gap-2">
+                    <AramaDugmesi kisa className="text-white" />
                     <Link href="/giris" className="rounded-full px-4 py-2 text-sm font-semibold text-white/85 transition hover:bg-white/10 hover:text-white">
                         Giriş yap
                     </Link>
